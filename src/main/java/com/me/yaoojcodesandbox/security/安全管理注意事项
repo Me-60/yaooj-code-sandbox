@@ -1,0 +1,19 @@
+Java的SecurityManager类（安全管理器）是 Java 提供的保护 JVM、Java 安全的机制，可以实现更严格的资源和操作限制。
+
+所以我们可以通过继承SecurityManager类实现自定义的安全管理器，达到限制用户对文件、内存、CPU、网络等资源的操作和访问。
+防止代码沙箱执行的用户代码恶意执行，造成对系统信息的泄露。
+具体实现为DefaultSecurityManager、DenySecurityManager和MySecurityManager这些类。
+
+但是在开发测试这些安全管理类时，发现安全管理器存在以下缺点：
+1.如果要做比较严格的权限限制，需要自己去判断哪些文件、包名需要允许读写。粒度太细了，难以精细化控制。
+2.安全管理器本身也是 Java 代码，也有可能存在漏洞。本质上还是程序层面的限制，没深入系统的层面。
+
+安全管理器的作用是为了限制用户代码的操作权限，所以启动子进程执行命令时，设置安全管理器，而不是在外层设置（会限制住测试用例的读写和子命令的执行）。
+具体操作如下：
+1）根据需要开发自定义的安全管理器（比如 MySecurityManager）
+2）复制 MySecurityManager 类到 resources/security 目录下， 移除类的包名
+3）手动输入命令编译 MySecurityManager 类，得到 class 文件
+4）在运行 java 程序时，指定安全管理器 class 文件的路径、安全管理器的名称。
+
+命令如下（windows下要用分号间隔多个类路径，linux下要用冒号间隔多个类路径）：
+java -Dfile.encoding=UTF-8 -cp %s;%s -Djava.security.manager=MySecurityManager Main
